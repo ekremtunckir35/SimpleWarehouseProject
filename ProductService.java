@@ -46,7 +46,7 @@ public class ProductService {
         }
 
 
-
+        public void productId(Product pr){  pr.setId(pr.getProductName().toUpperCase().substring(0,2) + LocalDate.now().getYear() + Product.counter); Product.counter++;  }
         //Tugce
 
 
