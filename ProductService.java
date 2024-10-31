@@ -108,9 +108,27 @@ public class ProductService {
 
 
     //Leven
+    // Ürün çıkarma metodu
+    public void productOutput() {
+        System.out.println("Enter the product ID for output:");
+        String productId = sc.nextLine();
+        Product product = products.get(productId);
 
+        if (product != null) {
+            System.out.println("Enter the quantity to remove:");
+            int quantity = sc.nextInt();
+            sc.nextLine();
 
-
+            if (quantity <= product.getQuantity()) {
+                product.setQuantity(product.getQuantity() - quantity);
+                System.out.println("Product output successful.");
+            } else {
+                System.out.println("Insufficient quantity in stock.");
+            }
+        } else {
+            System.out.println("Product not found with this ID.");
+        }
+    }
 
 
 
