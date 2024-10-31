@@ -47,7 +47,7 @@ public class ProductService {
 
 
 
-
+    //Tugce
 
 
 
@@ -78,42 +78,35 @@ public class ProductService {
 
 
     //Ummuhan
-    public void productEter(Map <String, Product> products) {
-        System.out.printf("%-15s %-12s %-15s %-7s %-10s %-10s%n"," PRODUCT ID ","PRODUCT NAME ", "PRODUCTOR NAME ","QUANTIY ","PART  "," SHELF   ");
-        System.out.printf("%-15s %-12s %-15s %-7s %-10s %-10s%n"," ------- ","--------------- ","------------ ","------ ","-----  ","----    ");
-        List<Product> productValue =new ArrayList<>(products.values());
-        System.out.print("Enter the product ID to add stock: ");
+    public void productShelf(Map <String, Product> products) {
+        System.out.println("Urun id giriniz.");
         String id = sc.nextLine();
-        Product product = products.get(id);
+        if (products.containsKey(id)){
+            try {
+                System.out.println("Urun için raf no giriniz");
+                int rafNo = sc.nextInt();
+                products.get(id).setShelf("SHELF" + rafNo);
+            } catch (InputMismatchException e) {
+                System.out.println("Raf no için sayısal veri giriniz");
+            }
 
-        if (product != null) {
-            System.out.print("Enter quantity to add: ");
-            int additionalQuantity = sc.nextInt();
-            sc.nextLine(); // buffer temizliği
-            product.setQuantity(product.getQuantity() + additionalQuantity);
-            System.out.println("Product quantity updated successfully.");
         } else {
-            System.out.println("Product not found.");
+            System.out.println("Girdiğiniz id kayıtlı değil. Listeden kontrol ederek tekrar deneyiniz.");
         }
     }
 
-    /**
-     Ürün ID'sini Almak:
-     * Kullanıcıdan stok eklemek istediği ürünün ID'si istenir.
-     * Girilen ID, products haritasında bir anahtar olarak aranır ve eşleşen ürün varsa product değişkenine atanır.
-     * Ürün Mevcutsa Stok Eklemek:
 
-     * Eğer product değişkeni null değilse, yani ürün bulunmuşsa:
-     * Kullanıcıdan eklenecek miktar istenir.
-     * sc.nextInt() ile girilen değer additionalQuantity değişkenine atanır.
-     * sc.nextLine() komutu, nextInt() sonrası tamponu temizlemek için kullanılır, böylece kullanıcıdan sonraki girişlerde sorun yaşanmaz.
-     * Ürünün mevcut miktarına (product.getQuantity()) yeni eklenen miktar eklenir ve bu toplam değer setQuantity() ile ürünün quantity alanına atanır.
-     * Stok başarıyla güncellendiğinde, "Product quantity updated successfully." mesajı ekrana yazdırılır.
-     * Ürün Bulunamazsa:
 
-     * Eğer product null ise, yani belirtilen ID'ye sahip bir ürün bulunmazsa, "Product not found." mesajı ekrana yazdırılır.
-     * Bu yapı, kullanıcıya, mevcut bir ürüne kolayca stok ekleyebilme imkânı sunar.
-     */
+
+
+
+
+
+
+
+
+
+
     //Leven
 
 

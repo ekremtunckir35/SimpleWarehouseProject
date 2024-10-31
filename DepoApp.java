@@ -43,10 +43,9 @@ public class DepoApp {
                 ps.listProduct(ps.products);
 
             } else if (select == 3) {
-                ps.productEter(ps.products);
 
             } else if (select == 4) {
-
+                ps.productShelf(ps.products);
             } else if (select == 5) {
 
             } else if (select == 0) {
