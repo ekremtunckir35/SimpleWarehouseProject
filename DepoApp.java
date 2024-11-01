@@ -1,4 +1,4 @@
-
+import java.util.List;
 import java.util.Scanner;
 
 public class DepoApp {
@@ -45,7 +45,7 @@ static Scanner scan = new Scanner(System.in);
             } else if (select == 3) {
 
             } else if (select == 4) {
-
+                ps.putProductOnShelf(ps.products);
             } else if (select == 5) {
 
             } else if (select == 0) {
