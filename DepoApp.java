@@ -2,7 +2,7 @@
 import java.util.Scanner;
 
 public class DepoApp {
-
+static Scanner scan = new Scanner(System.in);
     public static void main(String[] args) {
 
 
@@ -37,7 +37,7 @@ public class DepoApp {
             if (select == 1) {
 
                 ps.addProduct();
-
+                mainMenu();
             } else if (select == 2) {
 
                 ps.listProduct(ps.products);
@@ -53,13 +53,17 @@ public class DepoApp {
             } else  {
 
                 System.out.println(" Invalid selection please try again");
-            } {
-
             }
 
 
         } while (select != 0);
 
 
+    }
+
+
+    private static void mainMenu(){
+        System.out.println("1 - MAIN MENU");
+        int select = scan.nextInt();
     }
 }
