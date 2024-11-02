@@ -77,35 +77,35 @@ public class ProductService {
 
 
 
-    //Ummuhan
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    public void putProductOnShelf(Map<String, Product> products) {
+        try {
+            System.out.println("Enter the product ID to place on the shelf:");
+            String productId = sc.nextLine().trim();
+            if (!products.containsKey(productId)) {
+                System.out.println("Product not found with this ID.");
+                return;
+            }   Product product = products.get(productId);
+            int shelf = 0;
+            do {
+                System.out.println("Raf no giriniz :");
+                shelf = sc.nextInt();
+                if (shelf < 0 ){
+                    System.out.println("Negatif değer girmeyiniz");}
+            }while (shelf < 0);
+            product.setShelf("SHELF" + shelf);
+            System.out.println("Product placed on shelf " + product.getShelf() + " successfully.");
+            List<Product> productValue = new ArrayList<>(products.values());//Envanterdeki mevcut ürünler listesini yapar /* silinebilir kontrol.*/
+            System.out.println("Current products in the inventory:");
+            for (Product p : productValue) {
+                System.out.println("Product ID : " + p.getId() + ", Shelf : " + p.getShelf());}   //
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input type. Please try again.");
+            sc.nextLine(); // Clear the buffer in case of invalid input
+        } catch (Exception e) {
+            System.out.println("An unexpected error occurred: " + e.getMessage());
+        }
+    }
 
     //Leven
     // Ürün çıkarma metodu
