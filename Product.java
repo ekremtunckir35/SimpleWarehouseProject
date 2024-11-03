@@ -1,6 +1,6 @@
 public class Product {
 
-   private String id;
+    private String id;
 
     public static int counter = 1000; // id sayma
 
