@@ -1,13 +1,18 @@
+//package SimpleWarehouseProject;
+
 import java.util.Scanner;
 public class DepoApp {
     static Scanner scan = new Scanner(System.in);
     public static void main(String[] args) {
+
         mainMenu();
     }
     public static void mainMenu() {
         ProductService ps = new ProductService();
         int select;
+
         do {
+
             System.out.println("========= Depo Management System =========");
             System.out.println("1- Define a product");
             System.out.println("2- List products");
@@ -41,4 +46,5 @@ public class DepoApp {
         scan.nextLine(); // Wait for user input to return to the main menu
     }
 }
+
 

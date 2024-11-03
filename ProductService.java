@@ -1,10 +1,12 @@
 import java.time.LocalDate;
 import java.util.*;
 
-public class ProductService {
+public class ProductService implements DepoInterface {
     Map<String, Product> products = new LinkedHashMap<>();
     Scanner sc = new Scanner(System.in);
 
+
+    @Override
     public void addProduct(Map<String, Product> products) {
         Product pr = new Product(null, null, null, 0, null, null);
         System.out.print("Enter a product name: ");
@@ -16,9 +18,18 @@ public class ProductService {
 
         for (Product w : products.values()) {
             if (w.getProductName().equals(productName) && w.getProductorName().equals(productorName) && w.getPart().equals(part)) {
-                System.out.println("This product already exists. You can update the quantity instead.");
+                System.out.println("This product is already exists. You can update the quantity instead.");
                 return;
             }
+
+            //Bunu lambda ile yapmak istersek:
+            //if (products.values().stream().anyMatch(w ->
+            //        w.getProductName().equals(productName) &&
+            //        w.getProductorName().equals(productorName) &&
+            //        w.getPart().equals(part))) {
+            //    System.out.println("This product already exists. You can update the quantity instead.");
+            //    return;
+            //}
         }
 
         int productQuantity;
@@ -44,16 +55,32 @@ public class ProductService {
     }
 
     public void listProduct(Map<String, Product> products) {
-        System.out.printf("%-20s %-20s %-20s %-7s %-10s %-10s%n", "PRODUCT ID", "PRODUCT NAME", "PRODUCTOR NAME", "QUANTITY", "PART", "SHELF");
-        System.out.println("--------------------------------------------------------------------------------------------");
+        System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", "PRODUCT ID", "PRODUCT NAME", "PRODUCTOR NAME", "QUANTITY", "PART", "SHELF");
+        System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", "----------", "------------", "--------------", "--------", "-------", "------");
         for (Product product : products.values()) {
-            System.out.printf("%-20s %-20s %-20s %-7s %-10s %-10s%n", product.getId(), product.getProductName(), product.getProductorName(), product.getQuantity(), product.getPart(), product.getShelf());
+            System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", product.getId(), product.getProductName(), product.getProductorName(), product.getQuantity(), product.getPart(), product.getShelf());
         }
+
+        //for dongusunu lambda ile yapmak istersek:
+
+        //products.values().forEach(product -> System.out.printf("%-20s %-20s %-20s %-7s %-10s %-10s%n",
+        //product.getId(), product.getProductName(), product.getProductorName(), product.getQuantity(),
+        //product.getPart(), product.getShelf()));
+
     }
 
+    // id tanımlama method
     public void productId(Product pr) {
-        pr.setId(pr.getProductName().toUpperCase().substring(0, 2) + LocalDate.now().getYear() + Product.counter);
-        Product.counter++;
+//ürün ismi boş geçerse
+        try{
+            pr.setId(pr.getProductName().toUpperCase().substring(0, 2) + LocalDate.now().getYear() + Product.counter);
+            Product.counter++;
+        }catch (StringIndexOutOfBoundsException e){
+            pr.setId("NULL" + LocalDate.now().getYear() + Product.counter);
+            Product.counter++;
+
+        }
+
     }
 
     public void enterProduct(Map<String, Product> products) {
@@ -76,25 +103,32 @@ public class ProductService {
                 }
             } while (quantity <= 0);
             product.setQuantity(product.getQuantity() + quantity);
-            System.out.println("Product quantity updated successfully. New stock: " + product.getQuantity());
+            System.out.println("Product quantity updated successfully. NEW STOCK: " + product.getQuantity());
         } else {
-            System.out.println("Product not found with this ID.");
+            System.out.println("the id you have entered is not on the list plz check again Id");
         }
-<<<<<<< HEAD
+
     }
 
     public void putProductOnShelf(Map<String, Product> products) {
+
+        //yanlis giris yapinca ana menuye donmek icin 2 kez enter
+        // yapmak gerekiyor. sanirim bir tane bos nextline atmak gerekiyor
+
+        // iyilestirme onerisi: tum metodlari bir interface icinde tanimlayip sonra product servisi bu interface implements yapip concretelastirabiliriz.
         System.out.print("Enter the product ID to place on the shelf: ");
         String productId = sc.nextLine().trim();
+
         Product product = products.get(productId);
 
         if (product != null) {
             int shelfNo;
             boolean isShelfAvailable;
+
             do {
-                System.out.print("Enter a shelf number: ");
+                System.out.print("Enter a positive shelf number: ");
                 while (!sc.hasNextInt()) {
-                    System.out.println("Invalid input! Please enter a valid shelf number.");
+                    System.out.println("Invalid input! Please enter a valid  number value for the Shelf Number.");
                     sc.next();
                 }
                 shelfNo = sc.nextInt();
@@ -110,16 +144,34 @@ public class ProductService {
                 }
             } while (shelfNo < 0 || !isShelfAvailable);
 
+            //lambda ile yaparsak soyle olabilir:
+            /*isShelfAvailable = products.values().stream().noneMatch(p -> "SHELF" + shelfNo.equals(p.getShelf()));
+            if (!isShelfAvailable) {
+                System.out.println("This shelf is already occupied. Try a different one.");
+            } else {
+                product.setShelf("SHELF" + shelfNo);
+                System.out.println("Product placed on shelf " + product.getShelf() + " successfully.");
+            }
+        } while (!isShelfAvailable);*/
+
             product.setShelf("SHELF" + shelfNo);
             System.out.println("Product placed on shelf " + product.getShelf() + " successfully.");
         } else {
-            System.out.println("Product not found with this ID.");
+            System.out.println("the id you have entered is not on the list plz check again Id");
         }
+
+
+
     }
 
     public void productOutput(Map<String, Product> products) {
+        // id numarasini yanlis girince hata vermiyor. direk ana menuye doduruyor duzeltmek gerek.
+        //3. metoddaki calisiyor onu kullanabiliriz
+
         System.out.print("Enter the product ID for output: ");
         String productId = sc.nextLine().trim();
+
+
         Product product = products.get(productId);
 
         if (product != null) {
@@ -134,107 +186,22 @@ public class ProductService {
                 sc.nextLine();
 
                 if (quantity > product.getQuantity()) {
-                    System.out.println("Insufficient quantity in stock. Maximum available: " + product.getQuantity());
+                    System.out.println("Insufficient quantity in stock. MAXIMUM AVAILABLE: " + product.getQuantity());
                 } else if (quantity <= 0) {
                     System.out.println("Quantity should be a positive number.");
                 }
             } while (quantity <= 0 || quantity > product.getQuantity());
 
             product.setQuantity(product.getQuantity() - quantity);
-            System.out.println("Product output successful. Remaining stock: " + product.getQuantity());
-=======
-
-
-        public void productId(Product pr){  pr.setId(pr.getProductName().toUpperCase().substring(0,2) + LocalDate.now().getYear() + Product.counter); Product.counter++;  }
-        //Tugce
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public void putProductOnShelf(Map<String, Product> products) {
-        try {
-            System.out.println("Enter the product ID to place on the shelf:");
-            String productId = sc.nextLine().trim();
-            if (!products.containsKey(productId)) {
-                System.out.println("Product not found with this ID.");
-                return;
-            }   Product product = products.get(productId);
-            int shelf = 0;
-            do {
-                System.out.println("Raf no giriniz :");
-                shelf = sc.nextInt();
-                if (shelf < 0 ){
-                    System.out.println("Negatif değer girmeyiniz");}
-            }while (shelf < 0);
-            product.setShelf("SHELF" + shelf);
-            System.out.println("Product placed on shelf " + product.getShelf() + " successfully.");
-            List<Product> productValue = new ArrayList<>(products.values());//Envanterdeki mevcut ürünler listesini yapar /* silinebilir kontrol.*/
-            System.out.println("Current products in the inventory:");
-            for (Product p : productValue) {
-                System.out.println("Product ID : " + p.getId() + ", Shelf : " + p.getShelf());}   //
-        } catch (InputMismatchException e) {
-            System.out.println("Invalid input type. Please try again.");
-            sc.nextLine(); // Clear the buffer in case of invalid input
-        } catch (Exception e) {
-            System.out.println("An unexpected error occurred: " + e.getMessage());
-        }
-    }
-
-    //Leven
-    // Ürün çıkarma metodu
-    public void productOutput() {
-        System.out.println("Enter the product ID for output:");
-        String productId = sc.nextLine();
-        Product product = products.get(productId);
-
-        if (product != null) {
-            System.out.println("Enter the quantity to remove:");
-            int quantity = sc.nextInt();
-            sc.nextLine();
-
-            if (quantity <= product.getQuantity()) {
-                product.setQuantity(product.getQuantity() - quantity);
-                System.out.println("Product output successful.");
-            } else {
-                System.out.println("Insufficient quantity in stock.");
-            }
->>>>>>> c2e36f86db861af1554d44d9a00cd02372e0e6a3
+            System.out.println("Product output successful. REMAINING STOCK: " + product.getQuantity());
         } else {
-            System.out.println("Product not found with this ID.");
+            System.out.println("the id you have entered is not on the list plz check again");
         }
+
     }
-<<<<<<< HEAD
 }
-=======
 
 
 
 
-}
->>>>>>> c2e36f86db861af1554d44d9a00cd02372e0e6a3
+//Tugce
