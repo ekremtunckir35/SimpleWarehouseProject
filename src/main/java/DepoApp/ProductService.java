@@ -12,15 +12,23 @@ public class ProductService implements DepoInterface {
     Scanner sc = new Scanner(System.in);
     ProductSaveService saveService = new ProductSaveService(); // Ürünlerin dosyaya kaydedilmesi için servis sınıfı
 
-    // Yapıcı metot, uygulama başlarken dosyadan ürünleri yükler
+    // ANSI renk kodları
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_RED = "\u001B[31m";
+
     public ProductService() {
         products = saveService.loadFromFile();
-    }
+    }// Yapıcı metot, uygulama başlarken dosyadan ürünleri yükler
 
+    //Urun tanımlanır
     @Override
     public void addProduct(Map<String, Product> products) {
-        // Yeni bir ürün nesnesi oluştur
-        Product pr = new Product(null, null, null, 0, null, null);
+
+
+        int select = 1;
+        do {
+            // Yeni bir ürün nesnesi oluştur
+            Product pr = new Product(null, null, null, 0, null, null);
 
         // Ürün bilgilerini kullanıcıdan al
         System.out.print("Enter a product name: ");
@@ -66,6 +74,21 @@ public class ProductService implements DepoInterface {
 
         // Ürünü dosyaya kaydet
         saveService.saveToFile(this.products);
+
+            // İşleme devam veya çıkış seçeneği sunma
+            System.out.println("Press 1 to CONTINUE the process or 0 to EXIT.");
+            try {
+                select = sc.nextInt();
+                sc.nextLine();  // Satır sonu karakterini temizlemek için
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input! Please enter 0 or 1.");
+                sc.nextLine();  // Hatalı girişi temizlemek için
+                select = 1;     // Hatalı giriş durumunda döngüyü devam ettirmek için
+            }
+
+        }while (select !=0);
+
+        listProduct(products);
     }
 
     // Ürün ID'sini oluşturur
@@ -80,19 +103,106 @@ public class ProductService implements DepoInterface {
             Product.counter++;
         }
     }
-    // Ürünleri listeler
+
+    // ürünleri listeler
     public void listProduct(Map<String, Product> products) {
         System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", "PRODUCT ID", "PRODUCT NAME", "PRODUCTOR NAME", "QUANTITY", "PART", "SHELF");
         System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", "----------", "------------", "--------------", "--------", "-------", "------");
+
         for (Product product : products.values()) {
-            System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", product.getId(), product.getProductName(), product.getProductorName(), product.getQuantity(), product.getPart(), product.getShelf());
+            // Eğer ürün miktarı 0 ise kırmızı renkte yazdır
+            if (product.getQuantity() == 0) {
+                System.out.printf(ANSI_RED + "%-20s %-20s %-20s %-15s %-10s %-10s" + ANSI_RESET + "%n",
+                        product.getId(), product.getProductName(), product.getProductorName(), product.getQuantity(), product.getPart(), product.getShelf());
+            } else {
+                System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n",
+                        product.getId(), product.getProductName(), product.getProductorName(), product.getQuantity(), product.getPart(), product.getShelf());
+            }
         }
     }
 
+    //Tercihe göre sıralı liste
+    public void listProductWithSorting(Map<String, Product> products) {
+        // Kullanıcıdan sıralama tercihini al
+        Scanner sc = new Scanner(System.in);
+        int select = -1;
 
+        while (select == -1) { // Geçerli bir seçim yapılana kadar döngü
+            try {
+                System.out.println("Choose sorting criteria: ");
+                System.out.println("1. Sort by Quantity");
+                System.out.println("2. Sort by Shelf Number");
+                System.out.println("3. Sort by Product Name");
+                System.out.println("4. Sort by Productor Name");  // Üretici ismine göre sıralama seçeneği
+                System.out.print("Enter your choice (1-4): ");
+                select = sc.nextInt();
+
+                // Geçersiz seçim kontrolü
+                if (select < 1 || select > 4) {
+                    System.out.println("Invalid choice. Please enter a number between 1 and 4.");
+                    select = -1; // Döngüyü tekrar çalıştırmak için choice değeri sıfırlanır
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a valid number between 1 and 4.");
+                sc.nextLine(); // Geçersiz girdiyi temizlemek için
+                select = -1; // Döngüyü tekrar çalıştırmak için choice değeri sıfırlanır
+            }
+        }
+
+        List<Product> productList = new ArrayList<>(products.values());
+
+        // Seçilen tercihe göre sıralama
+        switch (select) {
+            case 1: // Miktara göre sıralama
+                Collections.sort(productList, Comparator.comparingInt(Product::getQuantity));
+                break;
+            case 2: // Raf numarasına göre sıralama
+                Collections.sort(productList, (p1, p2) -> {
+                    if (p1.getShelf() == null && p2.getShelf() == null) {
+                        return 0; // İki ürün de rafsızsa eşit kabul edilir
+                    }
+                    if (p1.getShelf() == null) {
+                        return -1; // Rafsız olanları öncelikli yapar
+                    }
+                    if (p2.getShelf() == null) {
+                        return 1; // Rafsız olanları öncelikli yapar
+                    }
+                    return p1.getShelf().compareTo(p2.getShelf()); // Raf numarasına göre sıralama
+                });
+                break;
+            case 3: // Ürün ismine göre sıralama
+                Collections.sort(productList, Comparator.comparing(Product::getProductName));
+                break;
+            case 4: // Üretici ismine göre sıralama
+                Collections.sort(productList, Comparator.comparing(Product::getProductorName));
+                break;
+        }
+
+        // Başlıkları yazdır
+        System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", "PRODUCT ID", "PRODUCT NAME", "PRODUCTOR NAME", "QUANTITY", "PART", "SHELF");
+        System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", "----------", "------------", "--------------", "--------", "-------", "------");
+
+        // Ürünleri listele
+        for (Product product : productList) {
+            // Eğer ürün miktarı 0 ise kırmızı renkte yazdır
+            if (product.getQuantity() == 0) {
+                System.out.printf(ANSI_RED + "%-20s %-20s %-20s %-15s %-10s %-10s" + ANSI_RESET + "%n",
+                        product.getId(), product.getProductName(), product.getProductorName(), product.getQuantity(), product.getPart(), product.getShelf());
+            } else {
+                System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n",
+                        product.getId(), product.getProductName(), product.getProductorName(), product.getQuantity(), product.getPart(), product.getShelf());
+            }
+        }
+    }
 
     // Ürünün miktarını günceller
     public void enterProduct(Map<String, Product> products) {
+        listProduct(products);
+
+        int select = 1;
+        do {
+
+
         System.out.print("Enter the product ID to update quantity: ");
         String productId = sc.nextLine().trim();
         Product product = products.get(productId);
@@ -120,51 +230,126 @@ public class ProductService implements DepoInterface {
 
         // Güncellenen ürünü dosyaya kaydet
         saveService.saveToFile(this.products);
+
+            // İşleme devam veya çıkış seçeneği sunma
+            System.out.println("Press 1 to CONTINUE the process or 0 to EXIT.");
+            try {
+                select = sc.nextInt();
+                sc.nextLine();  // Satır sonu karakterini temizlemek için
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input! Please enter 0 or 1.");
+                sc.nextLine();  // Hatalı girişi temizlemek için
+                select = 1;     // Hatalı giriş durumunda döngüyü devam ettirmek için
+            }
+
+        }while (select != 0 );
+
+        //işlemler bitince güncel listeyi gösterir
+        listProduct(this.products);
     }
 
     // Ürünü rafa yerleştirir
     public void putProductOnShelf(Map<String, Product> products) {
-        System.out.print("Enter the product ID to place on the shelf: ");
-        String productId = sc.nextLine().trim();
-        Product product = products.get(productId);
+        int select = 1;
 
-        if (product != null) {
-            int shelfNo;
-            boolean isShelfAvailable;
-
-            do {
-                System.out.print("Enter a positive shelf number: ");
-                while (!sc.hasNextInt()) {
-                    System.out.println("Invalid input! Please enter a valid number value for the Shelf Number.");
-                    sc.next();
+        do {
+            // Raf değeri null olan ürünlerin varlığını kontrol et
+            boolean hasUnassignedProducts = false;
+            for (Product product : products.values()) {
+                if (product.getShelf() == null) {
+                    hasUnassignedProducts = true;
+                    break;
                 }
-                shelfNo = sc.nextInt();
-                sc.nextLine();
+            }
 
-                // Rafın dolu olup olmadığını kontrol et
-                isShelfAvailable = true;
-                for (Product p : products.values()) {
-                    if (p.getShelf() != null && p.getShelf().equals("SHELF" + shelfNo)) {
-                        System.out.println("This shelf is already occupied. Try a different one.");
-                        isShelfAvailable = false;
-                        break;
+            // Eğer raf değeri null olan ürün varsa, sadece bu ürünleri listeler
+            if (hasUnassignedProducts) {
+                System.out.println("Listing products without shelf assignment:");
+                listUnassignedProducts();
+            } else {
+                System.out.println("All products are assigned shelves. Listing all products for update:");
+                listProduct(products);  // Tüm ürünleri listele
+            }
+
+            System.out.print("Enter the product ID to place or update on the shelf: ");
+            String productId = sc.nextLine().trim();
+            Product product = products.get(productId);
+
+            if (product != null) {
+                int shelfNo;
+                boolean isShelfAvailable;
+
+                do {
+                    System.out.print("Enter a positive shelf number: ");
+                    while (!sc.hasNextInt()) {
+                        System.out.println("Invalid input! Please enter a valid number value for the Shelf Number.");
+                        sc.next();
                     }
-                }
-            } while (shelfNo < 0 || !isShelfAvailable);
+                    shelfNo = sc.nextInt();
+                    sc.nextLine();
 
-            // Ürünü rafa yerleştir
-            product.setShelf("SHELF" + shelfNo);
-            System.out.println("Product placed on shelf " + product.getShelf() + " successfully.");
-        } else {
-            System.out.println("The ID you have entered is not on the list. Please check again.");
+                    // Rafın dolu olup olmadığını kontrol et
+                    isShelfAvailable = true;
+                    for (Product p : products.values()) {
+                        if (p.getShelf() != null && p.getShelf().equals("SHELF" + shelfNo)) {
+                            System.out.println("This shelf is already occupied. Try a different one.");
+                            isShelfAvailable = false;
+                            break;
+                        }
+                    }
+                } while (shelfNo < 0 || !isShelfAvailable);
+
+                // Ürünü rafa yerleştir veya güncelle
+                product.setShelf("SHELF" + shelfNo);
+                System.out.println("Product placed on shelf " + product.getShelf() + " successfully.");
+            } else {
+                System.out.println("The ID you have entered is not on the list. Please check again.");
+            }
+
+            // Güncellenen ürünü dosyaya kaydet
+            saveService.saveToFile(this.products);
+
+            // İşleme devam veya çıkış seçeneği sunma
+            System.out.println("Press 1 to CONTINUE the process or 0 to EXIT.");
+            try {
+                select = sc.nextInt();
+                sc.nextLine();  // Satır sonu karakterini temizlemek için
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input! Please enter 0 or 1.");
+                sc.nextLine();  // Hatalı girişi temizlemek için
+                select = 1;     // Hatalı giriş durumunda döngüyü devam ettirmek için
+            }
+        } while (select != 0);
+
+        // İşlem tamamlandıktan sonra ürünleri listele
+        listProduct(products);
+    }
+
+    // Raf değeri null olan ürünleri listeleyen metot
+    public void listUnassignedProducts() {
+        System.out.println("Listing products without a shelf:");
+        System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", "PRODUCT ID", "PRODUCT NAME", "PRODUCTOR NAME", "QUANTITY", "PART", "SHELF");
+        System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", "----------", "------------", "--------------", "--------", "-------", "------");
+
+        boolean found = false;
+        for (Product product : products.values()) {
+            if (product.getShelf() == null) {
+                System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", product.getId(), product.getProductName(), product.getProductorName(), product.getQuantity(), product.getPart(), "null");
+                found = true;
+            }
         }
 
-        // Güncellenen ürünü dosyaya kaydet
-        saveService.saveToFile(this.products);
+        if (!found) {
+            System.out.println("There are no products without a shelf.");
+        }
     }
 
     // Ürün çıkışı yapar
     public void productOutput(Map<String, Product> products) {
+        listProduct(products);
+
+        int select = 1;
+        do {
         System.out.print("Enter the product ID for output: ");
         String productId = sc.nextLine().trim();
         Product product = products.get(productId);
@@ -197,10 +382,56 @@ public class ProductService implements DepoInterface {
 
         // Güncellenen ürünü dosyaya kaydet
         saveService.saveToFile(this.products);
+            // İşleme devam veya çıkış seçeneği sunma
+            System.out.println("Press 1 to CONTINUE the process or 0 to EXIT.");
+            try {
+                select = sc.nextInt();
+                sc.nextLine();  // Satır sonu karakterini temizlemek için
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input! Please enter 0 or 1.");
+                sc.nextLine();  // Hatalı girişi temizlemek için
+                select = 1;     // Hatalı giriş durumunda döngüyü devam ettirmek için
+            }
+        } while (select != 0);
+
+        // İşlem tamamlandıktan sonra ürünleri listele
+        listProduct(products);
     }
+
+    // Ürün adını veya üretici adını kullanarak ürün arama
+    public void searchProduct(Map<String, Product> products) {
+        System.out.print("Enter product name or productor name to search: ");
+        String searchQuery = sc.nextLine().toUpperCase().trim();
+
+        // Arama sonuçlarını tutmak için bir liste
+        List<Product> searchResults = new ArrayList<>();
+
+        // Aranan ada veya üreticiye göre ürünleri filtrele
+        for (Product product : products.values()) {
+            if (product.getProductName().contains(searchQuery) || product.getProductorName().contains(searchQuery)) {
+                searchResults.add(product);
+            }
+        }
+
+        // Arama sonuçlarını listele
+        if (!searchResults.isEmpty()) {
+            System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", "PRODUCT ID", "PRODUCT NAME", "PRODUCTOR NAME", "QUANTITY", "PART", "SHELF");
+            System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", "----------", "------------", "--------------", "--------", "-------", "------");
+            for (Product product : searchResults) {
+                System.out.printf("%-20s %-20s %-20s %-15s %-10s %-10s%n", product.getId(), product.getProductName(), product.getProductorName(), product.getQuantity(), product.getPart(), product.getShelf());
+            }
+        } else {
+            System.out.println("No products found with the given name or productor name.");
+        }
+    }
+
 
     // Ürünü listeden kaldırır
     public void removeProduct(Map<String, Product> products) {
+        listProduct(products);
+
+        int select = 1;
+        do {
         System.out.print("Enter the product ID to remove: ");
         String productId = sc.nextLine().trim();
         Product product = products.get(productId);
@@ -215,6 +446,21 @@ public class ProductService implements DepoInterface {
 
         // Güncellenen listeyi dosyaya kaydet
         saveService.saveToFile(this.products);
+
+            // İşleme devam veya çıkış seçeneği sunma
+            System.out.println("Press 1 to CONTINUE the process or 0 to EXIT.");
+            try {
+                select = sc.nextInt();
+                sc.nextLine();  // Satır sonu karakterini temizlemek için
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input! Please enter 0 or 1.");
+                sc.nextLine();  // Hatalı girişi temizlemek için
+                select = 1;     // Hatalı giriş durumunda döngüyü devam ettirmek için
+            }
+        } while (select != 0);
+
+        // İşlem tamamlandıktan sonra ürünleri listele
+        listProduct(products);
     }
 
     // Listeyi tamamen sıfırlar
@@ -244,6 +490,7 @@ public class ProductService implements DepoInterface {
 
         // Ürün listesi temizlendikten veya iptal edildikten sonra, mevcut durumu dosyaya kaydet
         saveService.saveToFile(this.products);
+        listProduct(products);
     }
 
 
