@@ -365,9 +365,16 @@ public class ProductService implements DepoInterface {
                     quantity = sc.nextInt();
                     sc.nextLine();
 
-                    // Mevcut stok miktarını kontrol et
+                    /// Mevcut stok miktarını kontrol et
                     if (quantity > product.getQuantity()) {
-                        System.out.println("Insufficient quantity in stock. MAXIMUM AVAILABLE: " + product.getQuantity());
+                        try{
+                            throw new InsufficentQuantityException("Insufficient quantity in stock." );
+                        } catch (InsufficentQuantityException e) {
+                            e.printStackTrace();
+                            System.out.println("MAXIMUM AVAILABLE QUANTITY IS: " + product.getQuantity());
+
+                        }
+                        //System.out.println("Insufficient quantity in stock. MAXIMUM AVAILABLE: " + product.getQuantity());
                     } else if (quantity <= 0) {
                         System.out.println("Quantity should be a positive number.");
                     }
